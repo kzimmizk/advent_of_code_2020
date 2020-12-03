@@ -17,7 +17,6 @@ object three {
     def skipped: () => Result = () => Result(this.position, this.hits, this.rowCount + 1)
     def incremented: (Int, Int) => Result = (position_delta: Int, hits_delta: Int) =>
       Result(this.position + position_delta, this.hits + hits_delta, this.rowCount + 1)
-
   }
 
   def run(x_angle: Int, y_angle: Int): Int = data.foldLeft(Result(0, 0, 0))(
@@ -26,7 +25,6 @@ object three {
         else r.incremented(x_angle, if (e.isHit(r.position)) 1 else 0)
       }
     ).hits
-
 
   def main(args: Array[String]): Unit = {
     val firstAnswer = run(3, 1)

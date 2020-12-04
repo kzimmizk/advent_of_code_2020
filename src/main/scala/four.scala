@@ -13,11 +13,15 @@ object four {
     .map(_.replace('\n', ' ').split(' '))
     .map(document => document.map { case KV(key, value) => key -> value}.toMap )
 
-  val requiredFields: Set[String] = Set("byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid")
-
   object Validator {
-    def yearPatternMatcher(str: String): Boolean = raw"^[0-9]{4}$$".r.pattern.matcher(str).matches
-    def apply(key: String, value: String): Boolean = {
+    private val requiredFields: Set[String] = Set("byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid")
+
+    def hasRequiredFields(in: Map[String, String]): Boolean = requiredFields.subsetOf(in.keySet)
+
+    def hasValidFields(in: Map[String, String]): Boolean = in.forall(kvp => validateField(kvp._1, kvp._2))
+
+    private def validateField(key: String, value: String): Boolean = {
+      def yearPatternMatcher(str: String): Boolean = raw"^[0-9]{4}$$".r.pattern.matcher(str).matches
       (key, value) match {
         case ("byr", byr) => yearPatternMatcher(byr) && byr.toInt >= 1920 && byr.toInt <= 2002
         case ("iyr", iyr) => yearPatternMatcher(iyr) && iyr.toInt >= 2010 && iyr.toInt <= 2020
@@ -43,12 +47,12 @@ object four {
     }
   }
 
-
   def main(args: Array[String]): Unit = {
-    val firstAnswer = data.count(document => requiredFields.subsetOf(document.keySet))
+    val firstAnswer = data
+      .count((document) => Validator.hasRequiredFields(document))
     val secondAnswer = data
-      .filter(document => requiredFields.subsetOf(document.keySet))
-      .count(document => document.forall(kvp => Validator(kvp._1, kvp._2)))
+      .filter((document) => Validator.hasRequiredFields(document))
+      .count(document => Validator.hasValidFields(document))
     println(s"First Answer: $firstAnswer")
     println(s"Second Answer: $secondAnswer")
   }
